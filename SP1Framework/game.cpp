@@ -1,23 +1,38 @@
-// This is the main file for the game logic and function
+ï»¿// This is the main file for the game logic and function
 //
 //
 #include "game.h"
 #include "Framework\console.h"
 #include <iostream>
 #include <iomanip>
+#include <string>
+#include <fstream>
 #include <sstream>
-
+#define VK_KEY_W    0x57
+#define VK_KEY_A    0x41
+#define VK_KEY_S    0x53
+#define VK_KEY_D    0x44
 double  g_dElapsedTime;
 double  g_dDeltaTime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
+
+
+// Set up sample colours, and output shadings
+const WORD colors[] = {
+    0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F,
+    0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6
+};
+
+COORD c;
+
 
 // Game specific variables here
 SGameChar   g_sChar;
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 
 // Console object
-Console g_Console(80, 25, "SP1 Framework");
+Console g_Console(300, 64, "ESCAPE THE DUNGEON");
 
 //--------------------------------------------------------------
 // Purpose  : Initialisation function
@@ -147,11 +162,15 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
     EKEYS key = K_COUNT;
     switch (keyboardEvent.wVirtualKeyCode)
     {
-    case VK_UP: key = K_UP; break;
+    /*case VK_UP: key = K_UP; break;
     case VK_DOWN: key = K_DOWN; break;
     case VK_LEFT: key = K_LEFT; break; 
-    case VK_RIGHT: key = K_RIGHT; break; 
+    case VK_RIGHT: key = K_RIGHT; break; */
     case VK_SPACE: key = K_SPACE; break;
+    case VK_KEY_W: key = K_W; break;
+    case VK_KEY_S: key = K_S; break;
+    case VK_KEY_A: key = K_A; break;
+    case VK_KEY_D: key = K_D; break;
     case VK_ESCAPE: key = K_ESCAPE; break; 
     }
     // a key pressed event would be one with bKeyDown == true
@@ -231,22 +250,22 @@ void moveCharacter()
 {    
     // Updating the location of the character based on the key release
     // providing a beep sound whenver we shift the character
-    if (g_skKeyEvent[K_UP].keyReleased && g_sChar.m_cLocation.Y > 0)
+    if (g_skKeyEvent[K_W].keyDown && g_sChar.m_cLocation.Y > 0)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.Y--;       
     }
-    if (g_skKeyEvent[K_LEFT].keyReleased && g_sChar.m_cLocation.X > 0)
+    if (g_skKeyEvent[K_A].keyDown && g_sChar.m_cLocation.X > 0)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.X--;        
     }
-    if (g_skKeyEvent[K_DOWN].keyReleased && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y - 1)
+    if (g_skKeyEvent[K_S].keyDown && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y - 1)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.Y++;        
     }
-    if (g_skKeyEvent[K_RIGHT].keyReleased && g_sChar.m_cLocation.X < g_Console.getConsoleSize().X - 1)
+    if (g_skKeyEvent[K_D].keyDown && g_sChar.m_cLocation.X < g_Console.getConsoleSize().X - 1)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.X++;        
@@ -303,15 +322,57 @@ void renderToScreen()
 void renderSplashScreen()  // renders the splash screen
 {
     COORD c = g_Console.getConsoleSize();
-    c.Y /= 3;
-    c.X = c.X / 2 - 9;
-    g_Console.writeToBuffer(c, "A game in 3 seconds", 0x03);
+    c.Y /= 20;
+    c.X = c.X / 10;
+
+    // ESCAPE
+    g_Console.writeToBuffer(c, "    //   / /  //   ) )  //   ) )  // | |     //   ) ) //   / / ", 0x0F);
     c.Y += 1;
-    c.X = g_Console.getConsoleSize().X / 2 - 20;
-    g_Console.writeToBuffer(c, "Press <Space> to change character colour", 0x09);
+    g_Console.writeToBuffer(c, "   //____    ((        //        //__| |    //___/ / //____    ", 0x0F);
     c.Y += 1;
-    c.X = g_Console.getConsoleSize().X / 2 - 9;
-    g_Console.writeToBuffer(c, "Press 'Esc' to quit", 0x09);
+    g_Console.writeToBuffer(c, "  / ____       ", 0x0F);
+    c.X += 15;
+    g_Console.writeToBuffer(c, (char)92, 0x0F);
+    c.X += 1;
+    g_Console.writeToBuffer(c, (char)92, 0x0F);
+    c.X += 1;
+    g_Console.writeToBuffer(c, "     //        / ___  |   / ____ / / ____     ", 0x0F);
+    c.X -= 17;
+    c.Y += 1;
+    g_Console.writeToBuffer(c, " //              ) ) //        //    | |  //       //          ", 0x0F);
+    c.Y += 1;
+    g_Console.writeToBuffer(c, "//____/ / ((___ / / ((____/ / //     | | //       //____/ /    ", 0x0F);
+
+
+    // THE
+    c.Y += 2;
+    c.X += 15;
+    g_Console.writeToBuffer(c, " /__  ___/ //    / / //   / / ", 0x0F);
+    c.Y += 1;
+    g_Console.writeToBuffer(c, "   / /    //___ / / //____    ", 0x0F);
+    c.Y += 1;
+    g_Console.writeToBuffer(c, "  / /    / ___   / / ____     ", 0x0F);
+    c.Y += 1;
+    g_Console.writeToBuffer(c, " / /    //    / / //          ", 0x0F);
+    c.Y += 1;
+    g_Console.writeToBuffer(c, "/ /    //    / / //____/ /    ", 0x0F);
+
+
+    // DUNGEON
+    c.Y += 2;
+    c.X -= 20;
+    g_Console.writeToBuffer(c, "    //    ) ) //   / / /|    / / //   ) )  //   / /  //   ) ) /|    / / ", 0x0F);
+    c.Y += 1;
+    g_Console.writeToBuffer(c, "   //    / / //   / / //|   / / //        //____    //   / / //|   / /  ", 0x0F);
+    c.Y += 1;
+    g_Console.writeToBuffer(c, "  //    / / //   / / // |  / / //  ____  / ____    //   / / // |  / /   ", 0x0F);
+    c.Y += 1;
+    g_Console.writeToBuffer(c, " //    / / //   / / //  | / / //    / / //        //   / / //  | / /    ", 0x0F);
+    c.Y += 1;
+    g_Console.writeToBuffer(c, "//____/ / ((___/ / //   |/ / ((____/ / //____/ / ((___/ / //   |/ /     ", 0x0F);
+    c.Y += 1;
+
+
 }
 
 void renderGame()
@@ -322,21 +383,189 @@ void renderGame()
 
 void renderMap()
 {
-    // Set up sample colours, and output shadings
-    const WORD colors[] = {
-        0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F,
-        0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6
-    };
+    std::ifstream infile("Map1stTest.txt");
+    std::string var;
+    // Init and store Map
+    char map[65][300];
+    int y = 0;
+    while (getline(infile, var)) {
+        // Output the text from the file
+        for (unsigned i = 0; i < var.length(); ++i)
+        {
+            map[y][i] = var.at(i);
 
-    COORD c;
-    for (int i = 0; i < 12; ++i)
+        }
+        y++;
+    }
+
+
+    //render Map
+    for (int y = 0; y < 65; y++)
     {
-        c.X = 5 * i;
-        c.Y = i + 1;
-        colour(colors[i]);
-        g_Console.writeToBuffer(c, " °±²Û", colors[i]);
+        for (int x = 0; x < 300; x++)
+        {
+            if (map[y][x] == '*')
+            {
+                g_Console.writeToBuffer(x, y, '#', 0x0F);
+
+            }
+            else if (map[y][x] == '#')
+            {
+                // walls
+                g_Console.writeToBuffer(x, y, ' ', 0x00);
+            }
+            else
+            {
+                g_Console.writeToBuffer(x, y, ' ', 0x80);
+            }
+        }
+    }    //renderstart(); //render first to last room
+    //renderL1();
+    //renderL2();
+    //renderL3();
+    //renderlast();
+}
+
+void renderstart()
+{
+    //gate
+    renderlines(66, 11, 76, 12, 35); 
+    renderlines(64, 11, 66, 12, 219);
+    renderlines(76, 11, 78, 12, 219);
+
+    //walls
+    renderlines(30, 10, 31, 51, 219);
+    renderlines(31, 10, 32, 51, 219);
+    renderlines(30, 10, 111, 11, 219);
+    renderlines(110, 10, 111, 51, 219);
+    renderlines(111, 10, 112, 51, 219);
+    renderlines(30, 50, 111, 11, 219);
+    renderlines(66, 50, 76, 51, 43);
+
+    //obstacles 1
+    renderlines(43, 14, 59, 15, 254);
+    renderlines(42, 14, 44, 15, 219);
+    renderlines(59, 14, 61, 15, 219);
+    renderlines(42, 15, 43, 18, 222);
+    renderlines(43, 15, 44, 17, 221);
+    renderlines(42, 17, 44, 18, 219);
+    renderlines(38, 17, 42, 18, 254);
+    renderlines(36, 17, 38, 18, 219);
+    renderlines(36, 18, 37, 20, 222);
+    renderlines(36, 18, 37, 20, 222);
+    renderlines(37, 18, 38, 20, 221);
+    renderlines(36, 20, 38, 21, 219);
+    renderlines(38, 20, 42, 21, 254);
+    renderlines(42, 18, 43, 20, 222);
+    renderlines(43, 18, 44, 20, 221);
+    renderlines(42, 20, 44, 21, 219);
+
+    //obstacles 2
+    renderlines(102, 20, 104, 21, 219); 
+    renderlines(96, 20, 98, 21, 219);
+    renderlines(102, 17, 104, 18, 219);
+    renderlines(96, 17, 98, 18, 219);
+    renderlines(96, 14, 98, 15, 219);
+    renderlines(80, 14, 82, 15, 219);
+    renderlines(82, 14, 96, 15, 254);
+    renderlines(98, 20, 102, 21, 254);
+    renderlines(98, 17, 102, 18, 254);
+    renderlines(96, 15, 97, 17, 222);
+    renderlines(97, 15, 98, 17, 221);
+    renderlines(96, 18, 97, 20, 222);
+    renderlines(97, 18, 98, 20, 221);
+    renderlines(102, 18, 103, 20, 222);
+    renderlines(103, 18, 104, 20, 221);
+
+    //torch 1
+    renderblock(80, 20, 186);
+    renderblock(80, 19, 206);
+    renderblock(80, 18, 178);
+}
+
+void renderL1()
+{
+    renderlines(1, 1, 2, 31, 219);
+    renderlines(2, 1, 3, 31, 219);
+    renderlines(61, 1, 62, 31, 219);
+    renderlines(62, 1, 63, 31, 219);
+    renderlines(1, 1, 61, 2, 219);
+    renderlines(1, 30, 75, 31, 219);
+    renderlines(61, 13, 80, 14, 219);
+    renderlines(61, 18, 80, 19, 219);
+    renderlines(80, 1, 81, 51, 219);
+    renderlines(81, 1, 82, 51, 219);
+    renderlines(200, 1, 201, 46, 219);
+    renderlines(201, 1, 202, 46, 219);
+    renderlines(80, 1, 200, 2, 219);
+    renderlines(80, 30, 215, 31, 219);
+    renderlines(40, 30, 41, 51, 219);
+    renderlines(41, 30, 42, 51, 219);
+    renderlines(40, 50, 210, 51, 219);
+    renderlines(210, 33, 211, 51, 219);
+    renderlines(211, 33, 212, 51, 219);
+    renderlines(210, 33, 221, 34, 219);
+    renderlines(220, 20, 221, 34, 219);
+    renderlines(221, 20, 222, 34, 219);
+    renderlines(200, 20, 220, 21, 219);
+    renderlines(90, 30, 96, 31, 255);
+    renderlines(80, 14, 81, 18, 255);
+    renderlines(81, 14, 82, 18, 255);
+    renderlines(80, 41, 81, 45, 255);
+    renderlines(81, 41, 82, 45, 255);
+    renderlines(61, 14, 62, 18, 255);
+    renderlines(62, 14, 63, 18, 255);
+}
+
+void renderL2()
+{
+}
+
+void renderlines(int xstart, int ystart, int xend, int yend, int symbol)
+{
+    for (int x = xstart; x < xend; x++)
+    {
+        c.Y = ystart;
+        c.X = x;
+        
+        colour(colors[8]);
+        g_Console.writeToBuffer(c, (char)symbol, colors[0]);
+    }
+    for (int y = ystart; y < yend; y++)
+    {
+        c.X = xstart;
+        c.Y = y;
+        colour(colors[8]);
+        g_Console.writeToBuffer(c, (char)symbol, colors[0]);
     }
 }
+
+void renderblock(int xpos, int ypos, int hexa)
+{
+    c.X = xpos;
+    c.Y = ypos;
+    colour(colors[8]);
+    g_Console.writeToBuffer(c, (char)hexa, colors[0]);
+}
+
+void renderarea(int xstart, int ystart, int xend, int yend, int symbol)
+{
+    for (int x = xstart; x < xend; x++)
+    {
+        for (int y = ystart; y < yend; y++)
+        {
+            c.X = xstart;
+            c.Y = ystart;
+            c.X = x;
+            c.Y = y;
+
+            colour(colors[8]);
+            g_Console.writeToBuffer(c, (char)symbol, colors[0]);
+        }
+    }
+}
+
+
 
 void renderCharacter()
 {
@@ -372,7 +601,7 @@ void renderFramerate()
 void renderInputEvents()
 {
     // keyboard events
-    COORD startPos = {50, 2};
+    COORD startPos = {210, 2};
     std::ostringstream ss;
     std::string key;
     for (int i = 0; i < K_COUNT; ++i)
@@ -380,13 +609,13 @@ void renderInputEvents()
         ss.str("");
         switch (i)
         {
-        case K_UP: key = "UP";
+        case K_W: key = "W";
             break;
-        case K_DOWN: key = "DOWN";
+        case K_S: key = "S";
             break;
-        case K_LEFT: key = "LEFT";
+        case K_A: key = "A";
             break;
-        case K_RIGHT: key = "RIGHT";
+        case K_D: key = "D";
             break;
         case K_SPACE: key = "SPACE";
             break;

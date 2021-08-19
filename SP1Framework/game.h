@@ -1,11 +1,10 @@
 #ifndef _GAME_H
 #define _GAME_H
-
 #include "Framework\timer.h"
+#include <string>
 
 extern CStopWatch g_swTimer;
 extern bool g_bQuitGame;
-
 // struct to store keyboard events
 // a small subset of KEY_EVENT_RECORD
 struct SKeyEvent
@@ -26,13 +25,14 @@ struct SMouseEvent
 // Enumeration to store the control keys that your game will have
 enum EKEYS
 {
-    K_UP,
-    K_DOWN,
-    K_LEFT,
-    K_RIGHT,
+    K_W, //K_UP
+    K_S, //K_DOWN
+    K_A, //K_LEFT
+    K_D, //K_RIGHT
     K_ESCAPE,
     K_SPACE,
-    K_COUNT
+    K_COUNT,
+    
 };
 
 // Enumeration for the different screen states
@@ -64,7 +64,17 @@ void clearScreen();         // clears the current screen and draw from scratch
 void renderSplashScreen();  // renders the splash screen
 void renderGame();          // renders the game stuff
 void renderMap();           // renders the map to the buffer first
+void renderstart();
+void renderL1();
+void renderL2();
+void renderlines(int xstart, int ystart, int xend, int yend, int symbol);
+void renderblock(int xpos, int ypos, int hexa);
+void renderarea(int xstart, int ystart, int xend, int yend, int symbol);
+
 void renderCharacter();     // renders the character into the buffer
+void setPlayer(COORD position); //moves character to that position
+/*COORD getPlayerPosition();*/      //gets player COORD
+void playerInteractions();
 void renderFramerate();     // renders debug information, frame rate, elapsed time, etc
 void renderToScreen();      // dump the contents of the buffer to the screen, one frame worth of game
 void renderInputEvents();   // renders the status of input events
